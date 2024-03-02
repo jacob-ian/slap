@@ -2,7 +2,6 @@ package slap
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 )
 
@@ -31,7 +30,7 @@ func (app *SlackApplication) handleInteraction(w http.ResponseWriter, r *http.Re
 	var payloadType interactionPayloadType
 	err := json.Unmarshal(blob, &payloadType)
 	if err != nil {
-		slog.Error("Could not parse payload interactions type", "error", err.Error())
+		app.logger.Error("Could not parse payload interactions type", "error", err.Error())
 		http.Error(w, "Bad Payload", http.StatusBadRequest)
 		return
 	}

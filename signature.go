@@ -7,11 +7,10 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"io"
-	"log/slog"
 	"net/http"
 )
 
-func verify(secret string, handler http.HandlerFunc) http.HandlerFunc {
+func (app *SlackApplication) validateSignature(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		signature := r.Header.Get("x-slack-signature")
 		timestamp := r.Header.Get("x-slack-request-timestamp")
@@ -21,7 +20,7 @@ func verify(secret string, handler http.HandlerFunc) http.HandlerFunc {
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			slog.Error("Could not read request body", "error", err.Error())
+			app.logger.Error("Could not read request body", "error", err.Error())
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
 			return
 		}
@@ -29,10 +28,10 @@ func verify(secret string, handler http.HandlerFunc) http.HandlerFunc {
 		r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 		contents := "v0:" + timestamp + ":" + string(body)
-		hmac := hmac.New(sha256.New, []byte(secret))
+		hmac := hmac.New(sha256.New, []byte(app.signingSecret))
 		_, err = hmac.Write([]byte(contents))
 		if err != nil {
-			slog.Error("Could not write HMAC", "error", err.Error())
+			app.logger.Error("Could not write HMAC", "error", err.Error())
 			http.Error(w, "Internal Error", http.StatusInternalServerError)
 			return
 		}

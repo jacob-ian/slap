@@ -2,7 +2,6 @@ package slap
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/slack-go/slack"
@@ -14,22 +13,22 @@ type ViewSubmissionPayload struct {
 }
 
 type ViewSubmissionRequest struct {
-	baseEvent
+	baseRequest
 	Payload ViewSubmissionPayload
 }
 
-func (event *ViewSubmissionRequest) AckWithAction(action slack.ViewSubmissionResponse) {
-	if event.ackCalled {
+func (req *ViewSubmissionRequest) AckWithAction(action slack.ViewSubmissionResponse) {
+	if req.ackCalled {
 		return
 	}
-	event.ackCalled = true
+	req.ackCalled = true
 	bytes, err := json.Marshal(action)
 	if err != nil {
-		slog.Error("Could not encode view response action", "error", err.Error())
-		event.errChannel <- err
+		req.Logger.Error("Could not encode view response action", "error", err.Error())
+		req.errChannel <- err
 		return
 	}
-	event.ackChannel <- bytes
+	req.ackChannel <- bytes
 }
 
 type ViewSubmissionHandler func(req *ViewSubmissionRequest) error
@@ -38,14 +37,14 @@ func (app *SlackApplication) handleViewSubmission(w http.ResponseWriter, blob []
 	var payload ViewSubmissionPayload
 	err := json.Unmarshal(blob, &payload)
 	if err != nil {
-		slog.Warn("Could not parse ViewSubmissionPayload", "error", err.Error())
+		app.logger.Error("Could not parse ViewSubmissionPayload", "error", err.Error())
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
 
 	botToken, err := app.botToken(payload.Team.ID)
 	if err != nil {
-		slog.Error("Could not find bot token", "teamID", payload.Team.ID, "error", err.Error())
+		app.logger.Error("Could not get bot token", "teamID", payload.Team.ID, "error", err.Error())
 		http.Error(w, "Could not get bot token", http.StatusInternalServerError)
 		return
 	}
@@ -62,22 +61,23 @@ func (app *SlackApplication) handleViewSubmission(w http.ResponseWriter, blob []
 	go func() {
 		req := &ViewSubmissionRequest{
 			Payload: payload,
-			baseEvent: baseEvent{
+			baseRequest: baseRequest{
 				errChannel: errChan,
 				ackChannel: ackChan,
 				ackCalled:  false,
 				writer:     w,
 				Client:     slack.New(botToken),
+				Logger:     app.logger,
 			},
 		}
 		err := handler(req)
 		if err == nil {
 			return
 		}
-		slog.Error("A view submission handler failed", "callbackID", req.Payload.View.CallbackID, "error", err.Error())
+		app.logger.Error("A view submission handler failed", "callbackID", req.Payload.View.CallbackID, "error", err.Error())
 		_, msgerr := req.Client.PostEphemeral(req.Payload.User.ID, req.Payload.User.ID, slack.MsgOptionText("An error occurred", false))
 		if msgerr != nil {
-			slog.Error("Unable to send error message to user", "user", req.Payload.User.ID, "error", msgerr.Error())
+			app.logger.Error("Unable to send error message to user", "user", req.Payload.User.ID, "error", msgerr.Error())
 		}
 		errChan <- err
 	}()

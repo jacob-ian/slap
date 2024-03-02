@@ -2,7 +2,6 @@ package slap
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/slack-go/slack"
@@ -26,7 +25,7 @@ type BlockActionPayload struct {
 }
 
 type BlockActionRequest struct {
-	baseEvent
+	baseRequest
 	Payload BlockActionPayload
 }
 
@@ -36,7 +35,7 @@ func (app *SlackApplication) handleBlockActions(w http.ResponseWriter, blob []by
 	var payload BlockActionPayload
 	err := json.Unmarshal(blob, &payload)
 	if err != nil {
-		slog.Warn("Could not parse BlockActionPayload", "error", err.Error())
+		app.logger.Error("Could not parse BlockActionPayload", "error", err.Error())
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
@@ -48,7 +47,7 @@ func (app *SlackApplication) handleBlockActions(w http.ResponseWriter, blob []by
 
 	botToken, err := app.botToken(payload.Team.ID)
 	if err != nil {
-		slog.Error("Could not find bot token", "teamID", payload.Team.ID, "error", err.Error())
+		app.logger.Error("Could not get bot token", "teamID", payload.Team.ID, "error", err.Error())
 		http.Error(w, "Could not get bot token", http.StatusInternalServerError)
 		return
 	}
@@ -56,7 +55,7 @@ func (app *SlackApplication) handleBlockActions(w http.ResponseWriter, blob []by
 	actionID := payload.Actions[0].ActionID
 	handler, ok := app.blockActions[actionID]
 	if !ok {
-		// Allow unknown action IDs
+		// Return 200 for unknown action IDs
 		w.WriteHeader(http.StatusOK)
 		return
 	}
@@ -67,22 +66,23 @@ func (app *SlackApplication) handleBlockActions(w http.ResponseWriter, blob []by
 	go func() {
 		req := &BlockActionRequest{
 			Payload: payload,
-			baseEvent: baseEvent{
+			baseRequest: baseRequest{
 				errChannel: errChan,
 				ackChannel: ackChan,
 				ackCalled:  false,
 				writer:     w,
 				Client:     slack.New(botToken),
+				Logger:     app.logger,
 			},
 		}
 		err := handler(req)
 		if err == nil {
 			return
 		}
-		slog.Error("A block actions handler failed", "actionID", actionID, "error", err.Error())
+		app.logger.Error("A block actions handler failed", "actionID", actionID, "error", err.Error())
 		_, msgerr := req.Client.PostEphemeral(req.Payload.Channel.ID, req.Payload.User.ID, slack.MsgOptionText("An error occurred", false))
 		if msgerr != nil {
-			slog.Error("Unable to send error message to user", "user", req.Payload.User.ID, "error", msgerr.Error())
+			app.logger.Error("Unable to send error message to user", "user", req.Payload.User.ID, "error", msgerr.Error())
 		}
 		errChan <- err
 	}()

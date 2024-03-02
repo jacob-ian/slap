@@ -3,7 +3,6 @@ package slap
 import (
 	"encoding/json"
 	"io"
-	"log/slog"
 	"net/http"
 
 	"github.com/slack-go/slack"
@@ -73,7 +72,7 @@ func (e *MessageEvent) IsBot() bool {
 }
 
 type EventRequest struct {
-	baseEvent
+	baseRequest
 	Payload EventPayload
 }
 
@@ -82,7 +81,7 @@ type EventHandler func(req *EventRequest) error
 func (app *SlackApplication) handleEvent(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		slog.Error("Could not read body", "error", err.Error())
+		app.logger.Error("Could not read event request body", "error", err.Error())
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
@@ -90,7 +89,7 @@ func (app *SlackApplication) handleEvent(w http.ResponseWriter, r *http.Request)
 	var outer outerEvent
 	err = json.Unmarshal(body, &outer)
 	if err != nil {
-		slog.Error("Invalid outer event payload", "error", err.Error())
+		app.logger.Error("Invalid outer event payload", "error", err.Error())
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return
 	}
@@ -102,11 +101,11 @@ func (app *SlackApplication) handleEvent(w http.ResponseWriter, r *http.Request)
 		w.Write([]byte(outer.Challenge))
 	case RateLimited:
 		w.WriteHeader(http.StatusOK)
-		slog.Warn("Events API has been rate limited", "minute_limited", outer.MinuteRateLimited)
+		app.logger.Warn("Events API has been rate limited", "minute_limited", outer.MinuteRateLimited)
 	case EventCallback:
 		app.handleEventCallback(w, outer)
 	default:
-		slog.Warn("Unknown outer event type", "type", outer.Type)
+		app.logger.Warn("Unknown outer event type", "type", outer.Type)
 		http.Error(w, "Unknown outer event type", http.StatusBadRequest)
 	}
 }
@@ -115,21 +114,22 @@ func (app *SlackApplication) handleEventCallback(w http.ResponseWriter, o outerE
 	var innerType innerEventType
 	err := json.Unmarshal(o.Event, &innerType)
 	if err != nil {
-		slog.Error("Could not parse inner event type", "error", err.Error())
+		app.logger.Error("Could not parse inner event type", "error", err.Error())
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
 	handler, ok := app.events[innerType.Type]
 	if !ok {
-		slog.Warn("No handler registered for event", "eventType", innerType.Type)
+		// Return 200 if event types without handlers are received
+		app.logger.Warn("No handler registered for event", "eventType", innerType.Type)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
 	botToken, err := app.botToken(o.TeamID)
 	if err != nil {
-		slog.Error("Could not find bot token", "teamID", o.TeamID, "error", err.Error())
+		app.logger.Error("Could not get bot token", "teamID", o.TeamID, "error", err.Error())
 		http.Error(w, "An error occurred", http.StatusInternalServerError)
 		return
 	}
@@ -139,8 +139,9 @@ func (app *SlackApplication) handleEventCallback(w http.ResponseWriter, o outerE
 
 	go func() {
 		req := &EventRequest{
-			baseEvent: baseEvent{
+			baseRequest: baseRequest{
 				Client:     slack.New(botToken),
+				Logger:     app.logger,
 				writer:     w,
 				ackCalled:  false,
 				ackChannel: ackChan,
@@ -155,7 +156,7 @@ func (app *SlackApplication) handleEventCallback(w http.ResponseWriter, o outerE
 		if err == nil {
 			return
 		}
-		slog.Error("An event handler failed", "eventType", innerType.Type, "error", err.Error())
+		app.logger.Error("An event handler failed", "eventType", innerType.Type, "error", err.Error())
 		errChan <- err
 	}()
 
