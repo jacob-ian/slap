@@ -78,7 +78,7 @@ type EventRequest struct {
 
 type EventHandler func(req *EventRequest) error
 
-func (app *SlackApplication) handleEvent(w http.ResponseWriter, r *http.Request) {
+func (app *Application) handleEvent(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		app.logger.Error("Could not read event request body", "error", err.Error())
@@ -110,7 +110,7 @@ func (app *SlackApplication) handleEvent(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (app *SlackApplication) handleEventCallback(w http.ResponseWriter, o outerEvent) {
+func (app *Application) handleEventCallback(w http.ResponseWriter, o outerEvent) {
 	var innerType innerEventType
 	err := json.Unmarshal(o.Event, &innerType)
 	if err != nil {

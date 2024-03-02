@@ -33,7 +33,7 @@ func (req *ViewSubmissionRequest) AckWithAction(action slack.ViewSubmissionRespo
 
 type ViewSubmissionHandler func(req *ViewSubmissionRequest) error
 
-func (app *SlackApplication) handleViewSubmission(w http.ResponseWriter, blob []byte) {
+func (app *Application) handleViewSubmission(w http.ResponseWriter, blob []byte) {
 	var payload ViewSubmissionPayload
 	err := json.Unmarshal(blob, &payload)
 	if err != nil {

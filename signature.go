@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func (app *SlackApplication) validateSignature(handler http.HandlerFunc) http.HandlerFunc {
+func (app *Application) validateSignature(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		signature := r.Header.Get("x-slack-signature")
 		timestamp := r.Header.Get("x-slack-request-timestamp")

@@ -24,7 +24,7 @@ type interactionPayload struct {
 	ApiAppId  string `json:"api_app_id"`
 }
 
-func (app *SlackApplication) handleInteraction(w http.ResponseWriter, r *http.Request) {
+func (app *Application) handleInteraction(w http.ResponseWriter, r *http.Request) {
 	blob := []byte(r.FormValue("payload"))
 
 	var payloadType interactionPayloadType

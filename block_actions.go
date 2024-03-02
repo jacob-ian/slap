@@ -31,7 +31,7 @@ type BlockActionRequest struct {
 
 type BlockActionHandler func(req *BlockActionRequest) error
 
-func (app *SlackApplication) handleBlockActions(w http.ResponseWriter, blob []byte) {
+func (app *Application) handleBlockActions(w http.ResponseWriter, blob []byte) {
 	var payload BlockActionPayload
 	err := json.Unmarshal(blob, &payload)
 	if err != nil {
