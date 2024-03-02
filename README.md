@@ -6,4 +6,9 @@ A framework for building Slack Applications in Go!
 
 - Add error message field
 - Docs
+    - [x] application
+    - [x] commands
+    - [x] request
+    - [ ] view_submissions
+    - [ ] block_actions
 - Tests everywhere
