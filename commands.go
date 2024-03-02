@@ -7,27 +7,67 @@ import (
 	"github.com/slack-go/slack"
 )
 
-type CommandRequest struct {
-	baseRequest
-	Payload slack.SlashCommand
+// The payload of a Slack slash command request
+type CommandPayload struct {
+	// Deprecated: The verification token.
+	Token string `json:"token"`
+	// The command that was called
+	Command string `json:"command"`
+	// The text after the command
+	Text string `json:"text"`
+	// The Team ID of the workspace this command was used in.
+	TeamID string `json:"team_id"`
+	// The domain name of the workspace.
+	TeamDomain string `json:"team_domain"`
+	// The Enterprise ID this workspace belongs to if using Enterprise Grid.
+	EnterpriseID string `json:"enterprise_id,omitempty"`
+	// The name of the enterprise this workspace belongs to if using Enterprise Grid..
+	EnterpriseName string `json:"enterprise_name,omitempty"`
+	// The ID of the channel the command was used in.
+	ChannelID string `json:"channel_id"`
+	// The name of the channel the command was used in.
+	ChannelName string `json:"channel_name"`
+	// The ID of the user calling the command.
+	UserID string `json:"user_id"`
+	// Deprecated: The name of the user calling the command.
+	UserName string `json:"user_name"`
+	// A temporary webhook URL that used to generate message responses.
+	ResponseURL string `json:"response_url"`
+	// A short-lived ID that can be used to open modals.
+	TriggerID string `json:"trigger_id"`
+	// Your Slack App's unique identifier.
+	APIAppID string `json:"api_app_id"`
 }
 
+// A slash command request from Slack
+type CommandRequest struct {
+	baseRequest
+	// The paylaod of the Slack request
+	Payload CommandPayload
+}
+
+// A function to handle slash command requests
 type CommandHandler func(req *CommandRequest) error
 
+// The type in a command action response
 type CommandActionResponseType string
 
 const (
-	CmdRespondInChannel CommandActionResponseType = "in_channel"
-	CmdRespondEphemeral CommandActionResponseType = "ephemeral"
+	RespondInChannel CommandActionResponseType = "in_channel"
+	RespondEphemeral CommandActionResponseType = "ephemeral"
 )
 
+// An immediate action to be ran in response to a slash command
 type CommandAction struct {
+	// The type of response
 	ResponseType CommandActionResponseType `json:"response_type"`
-	Text         string                    `json:"text"`
-	Blocks       []slack.Block             `json:"blocks,omitempty"`
+	// Text to send in the response
+	Text string `json:"text"`
+	// Slack Block Kit Blocks to send in the response
+	Blocks []slack.Block `json:"blocks,omitempty"`
 }
 
-// Immediately respond to Slack's Command request with an action
+// Immediately respond to Slack's slash command request with an action
 func (req *CommandRequest) AckWithAction(action CommandAction) {
 	if req.ackCalled {
 		return
@@ -42,8 +82,9 @@ func (req *CommandRequest) AckWithAction(action CommandAction) {
 	req.ackChannel <- bytes
 }
 
-func (app *SlackApplication) handleCommand(w http.ResponseWriter, r *http.Request) {
-	payload, err := slack.SlashCommandParse(r)
+func (app *Application) handleCommand(w http.ResponseWriter, r *http.Request) {
+	var payload CommandPayload
+	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		http.Error(w, "Invalid payload", http.StatusBadRequest)
 		return

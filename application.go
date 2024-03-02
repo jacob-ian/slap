@@ -1,3 +1,4 @@
+// This package contains the Slap framework for developing Slack Applications.
 package slap
 
 import (
@@ -19,7 +20,7 @@ type baseRequest struct {
 	writer     http.ResponseWriter
 }
 
-// Acknowledge Slack's request with 200
+// Acknowledge Slack's request with Status 200
 func (event *baseRequest) Ack() {
 	if event.ackCalled {
 		return
@@ -28,23 +29,31 @@ func (event *baseRequest) Ack() {
 	event.ackChannel <- nil
 }
 
+// A function taking a Slack teamID (workspace ID) that returns
+// the workspace's bot token as a string.
+// For a non-distributed app, simply return your bot token.
 type BotTokenGetter func(teamID string) (string, error)
 
-// Configuration options for the SlackApplication
+// Configuration options for the Slap Application
 type Config struct {
-	// A net/http Serve Mux. Slap will overwrite the POST routes for "/interactions", "/events", and "/commands"
+	// Required. A net/http Serve Mux.
+	//
+	// Slap will overwrite the following POST routes:
+	// "POST {prefix}/interactions", "POST {prefix}/events", and "POST {prefix}/commands".
 	Router *http.ServeMux
-	// Adds a path to the start of the Slack routes
+	// Optional. Adds a path to the start of the Slack routes.
 	PathPrefix string
-	// Method for fetching bot tokens for a workspace based on team ID
+	// Required. Method for fetching bot tokens
+	// for a workspace based on its team ID
 	BotToken BotTokenGetter
-	// The Slack webhook signing secret for your app
+	// Required. The Slack webhook signing secret for your app
 	SigningSecret string
-	// A logger
+	// A logger for the Slap Application
 	Logger *slog.Logger
 }
 
-type SlackApplication struct {
+// A Slap Application.
+type Application struct {
 	signingSecret   string
 	botToken        BotTokenGetter
 	commands        map[string]CommandHandler
@@ -54,8 +63,10 @@ type SlackApplication struct {
 	logger          *slog.Logger
 }
 
-// Register a slash command handler
-func (app *SlackApplication) RegisterCommand(command string, handler CommandHandler) {
+// Registers a slash command handler.
+//
+// Panics if the slash command has already been registered.
+func (app *Application) RegisterCommand(command string, handler CommandHandler) {
 	_, ok := app.commands[command]
 	if ok {
 		panic(fmt.Sprintf("Command %v has already been registered", command))
@@ -64,9 +75,10 @@ func (app *SlackApplication) RegisterCommand(command string, handler CommandHand
 	app.logger.Info("Registered Command", "command", command)
 }
 
-// Register a block action handler
-// Panics if the actionID has already been registered
-func (app *SlackApplication) RegisterBlockAction(actionID string, handler BlockActionHandler) {
+// Registers a block action handler.
+//
+// Panics if the actionID has already been registered.
+func (app *Application) RegisterBlockAction(actionID string, handler BlockActionHandler) {
 	_, ok := app.blockActions[actionID]
 	if ok {
 		panic(fmt.Sprintf("Action ID %v has already been registered", actionID))
@@ -75,9 +87,10 @@ func (app *SlackApplication) RegisterBlockAction(actionID string, handler BlockA
 	app.logger.Info("Registered Block Action", "actionID", actionID)
 }
 
-// Register a view submission handler
-// Panics if the callbackID has already been registered
-func (app *SlackApplication) RegisterViewSubmission(callbackID string, handler ViewSubmissionHandler) {
+// Registers a view submission handler.
+//
+// Panics if the callbackID has already been registered.
+func (app *Application) RegisterViewSubmission(callbackID string, handler ViewSubmissionHandler) {
 	_, ok := app.viewSubmissions[callbackID]
 	if ok {
 		panic(fmt.Sprintf("View Callback ID %v has already been registered", callbackID))
@@ -86,9 +99,10 @@ func (app *SlackApplication) RegisterViewSubmission(callbackID string, handler V
 	app.logger.Info("Registered View Callback", "callbackID", callbackID)
 }
 
-// Register an event handler for a subscribed event type
-// Panics if the eventType has already been registered
-func (app *SlackApplication) RegisterEventHandler(eventType string, handler EventHandler) {
+// Registers an EventAPI event handler for a subscribed event type.
+//
+// Panics if the eventType has already been registered.
+func (app *Application) RegisterEventHandler(eventType string, handler EventHandler) {
 	_, ok := app.events[eventType]
 	if ok {
 		panic(fmt.Sprintf("Event Handler for type %v has already been registered", eventType))
@@ -97,8 +111,8 @@ func (app *SlackApplication) RegisterEventHandler(eventType string, handler Even
 	app.logger.Info("Registered Event Handler", "eventType", eventType)
 }
 
-// Creates a new Slack Application with an http.ServeMux
-func New(config Config) *SlackApplication {
+// Creates a new Applcation with an http.ServeMux.
+func New(config Config) *Application {
 	if config.Router == nil {
 		panic("Missing http.ServeMux in slap.New")
 	}
@@ -115,7 +129,7 @@ func New(config Config) *SlackApplication {
 		logger = slog.New(slog.NewTextHandler(nil, &slog.HandlerOptions{}))
 	}
 
-	app := SlackApplication{
+	app := Application{
 		logger:          logger,
 		botToken:        config.BotToken,
 		signingSecret:   config.SigningSecret,
