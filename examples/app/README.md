@@ -1,8 +1,7 @@
 # Example: app
 
-This example shows the registration of a slash command "/start",
-a block action (from a button press) "start-button", a view submission 
-callback "form-modal", and an event handler for "message". 
+This example shows the registration of a slash command `/start`, a block action (from a button press) `start-button`,
+a view submission callback `form-modal`, and an event handler for `message`. 
 
 To run this example:
 1. Set your App's signing secret and bot token in your environment
