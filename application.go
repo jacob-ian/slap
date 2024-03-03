@@ -15,7 +15,8 @@ type BotTokenGetter func(teamID string) (string, error)
 // Configuration options for the Slap Application
 type Config struct {
 	// Required. Slap will overwrite the following POST routes:
-	// "POST {prefix}/interactions", "POST {prefix}/events", and "POST {prefix}/commands".
+	// "POST /interactions", "POST /events",
+	// and "POST /commands".
 	Router *http.ServeMux
 	// Optional. Adds a path to the start of the Slack routes.
 	PathPrefix string
