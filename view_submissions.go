@@ -7,16 +7,19 @@ import (
 	"github.com/slack-go/slack"
 )
 
+// The payload of the Slack view_submission request
 type ViewSubmissionPayload struct {
 	interactionPayload
 	View slack.View `json:"view"`
 }
 
+// A Slack view submission request
 type ViewSubmissionRequest struct {
 	baseRequest
 	Payload ViewSubmissionPayload
 }
 
+// Immediately respond to Slack with a view response action
 func (req *ViewSubmissionRequest) AckWithAction(action slack.ViewSubmissionResponse) {
 	if req.ackCalled {
 		return
@@ -31,6 +34,7 @@ func (req *ViewSubmissionRequest) AckWithAction(action slack.ViewSubmissionRespo
 	req.ackChannel <- bytes
 }
 
+// A function to handle a view submission request
 type ViewSubmissionHandler func(req *ViewSubmissionRequest) error
 
 func (app *Application) handleViewSubmission(w http.ResponseWriter, blob []byte) {
