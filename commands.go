@@ -123,7 +123,7 @@ func (app *Application) handleCommand(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		app.logger.Error("A command handler failed", "command", req.Payload.Command, "error", err.Error())
-		_, msgerr := req.Client.PostEphemeral(req.Payload.ChannelID, req.Payload.UserID, slack.MsgOptionText("An error occurred", false))
+		_, msgerr := req.Client.PostEphemeral(req.Payload.ChannelID, req.Payload.UserID, slack.MsgOptionText(app.errorMessage, false))
 		if msgerr != nil {
 			app.logger.Error("Unable to send error message to user", "user", req.Payload.UserID, "error", msgerr.Error())
 		}

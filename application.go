@@ -14,9 +14,7 @@ type BotTokenGetter func(teamID string) (string, error)
 
 // Configuration options for the Slap Application
 type Config struct {
-	// Required. A net/http Serve Mux.
-	//
-	// Slap will overwrite the following POST routes:
+	// Required. Slap will overwrite the following POST routes:
 	// "POST {prefix}/interactions", "POST {prefix}/events", and "POST {prefix}/commands".
 	Router *http.ServeMux
 	// Optional. Adds a path to the start of the Slack routes.
@@ -28,12 +26,18 @@ type Config struct {
 	SigningSecret string
 	// A logger for the Slap Application
 	Logger *slog.Logger
+	// A generic, ephemeral error message to send the user
+	// when a handler returns an error.
+	//
+	// Defaults to: "An error occurred".
+	ErrorMessage string
 }
 
 // A Slap Application.
 type Application struct {
 	signingSecret   string
 	botToken        BotTokenGetter
+	errorMessage    string
 	commands        map[string]CommandHandler
 	blockActions    map[string]BlockActionHandler
 	viewSubmissions map[string]ViewSubmissionHandler
@@ -107,10 +111,16 @@ func New(config Config) *Application {
 		logger = slog.New(slog.NewTextHandler(nil, &slog.HandlerOptions{}))
 	}
 
+	errorMessage := config.ErrorMessage
+	if errorMessage == "" {
+		errorMessage = "An error occurred"
+	}
+
 	app := Application{
 		logger:          logger,
 		botToken:        config.BotToken,
 		signingSecret:   config.SigningSecret,
+		errorMessage:    errorMessage,
 		commands:        make(map[string]CommandHandler),
 		blockActions:    make(map[string]BlockActionHandler),
 		viewSubmissions: make(map[string]ViewSubmissionHandler),

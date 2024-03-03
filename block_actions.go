@@ -83,7 +83,7 @@ func (app *Application) handleBlockActions(w http.ResponseWriter, blob []byte) {
 			return
 		}
 		app.logger.Error("A block actions handler failed", "actionID", actionID, "error", err.Error())
-		_, msgerr := req.Client.PostEphemeral(req.Payload.Channel.ID, req.Payload.User.ID, slack.MsgOptionText("An error occurred", false))
+		_, msgerr := req.Client.PostEphemeral(req.Payload.Channel.ID, req.Payload.User.ID, slack.MsgOptionText(app.errorMessage, false))
 		if msgerr != nil {
 			app.logger.Error("Unable to send error message to user", "user", req.Payload.User.ID, "error", msgerr.Error())
 		}

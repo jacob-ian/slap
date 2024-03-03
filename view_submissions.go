@@ -79,7 +79,7 @@ func (app *Application) handleViewSubmission(w http.ResponseWriter, blob []byte)
 			return
 		}
 		app.logger.Error("A view submission handler failed", "callbackID", req.Payload.View.CallbackID, "error", err.Error())
-		_, msgerr := req.Client.PostEphemeral(req.Payload.User.ID, req.Payload.User.ID, slack.MsgOptionText("An error occurred", false))
+		_, msgerr := req.Client.PostEphemeral(req.Payload.User.ID, req.Payload.User.ID, slack.MsgOptionText(app.errorMessage, false))
 		if msgerr != nil {
 			app.logger.Error("Unable to send error message to user", "user", req.Payload.User.ID, "error", msgerr.Error())
 		}
