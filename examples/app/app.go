@@ -131,7 +131,7 @@ func main() {
 	})
 
 	app.RegisterEventHandler("message", func(req *slap.EventRequest) error {
-		// Parse the message inner event from the Events API outer event
+		// Parse the inner message event from the Events API outer event
 		var innerEvent slap.MessageEvent
 		err := json.Unmarshal(req.Payload.Event, &innerEvent)
 		if err != nil {
