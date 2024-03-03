@@ -7,6 +7,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
+// The payload of a Slack block action request
 type BlockActionPayload struct {
 	interactionPayload
 	Container struct {
@@ -24,11 +25,13 @@ type BlockActionPayload struct {
 	State   *slack.BlockActionStates `json:"state,omitempty"`
 }
 
+// A block action request
 type BlockActionRequest struct {
 	baseRequest
 	Payload BlockActionPayload
 }
 
+// A function to handle a block action request
 type BlockActionHandler func(req *BlockActionRequest) error
 
 func (app *Application) handleBlockActions(w http.ResponseWriter, blob []byte) {
