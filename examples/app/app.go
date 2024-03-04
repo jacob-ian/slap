@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/jacob-ian/slap"
 	"github.com/slack-go/slack"
@@ -109,12 +110,10 @@ func main() {
 		if !hasFullName {
 			return errors.New("Missing full name")
 		}
-		if rune(fullName.Value[0]) != 'a' {
-			req.AckWithAction(slack.ViewSubmissionResponse{
-				Errors: map[string]string{
-					"full-name": "Name doesn't start with 'a'",
-				},
-			})
+		if rune(strings.ToLower(fullName.Value)[0]) != 'a' {
+			req.AckWithAction(*slack.NewErrorsViewSubmissionResponse(map[string]string{
+				"input-block": "Name doesn't start with 'A'",
+			}))
 			return nil
 		}
 
