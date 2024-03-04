@@ -87,7 +87,7 @@ func (req *CommandRequest) AckWithAction(action CommandResponse) {
 func (app *Application) handleCommand(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		app.logger.Error("Failed to read command request", "error", err.Error())
+		app.logger.Error("Failed to read command request body", "error", err.Error())
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
