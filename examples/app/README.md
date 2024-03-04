@@ -6,7 +6,7 @@ a view submission callback `form-modal`, and an event handler for `message`.
 To run this example:
 1. Set your Slack app's signing secret and bot token in your environment
 2. Run `go run app.go`
-3. Run `ngrok http 4000`
+3. Run `ngrok http 4000` in another terminal
 4. Update your Slack app at [api.slack.com/apps](https://api.slack.com/apps) with:
     1. Commands: Add `/start` with the URL `{ngrok_url}/commands`
     1. Interactions: Use `{ngrok_url}/interactions` as the endpoint
