@@ -2,7 +2,9 @@ package slap
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/slack-go/slack"
 )
@@ -10,33 +12,33 @@ import (
 // The payload of a Slack slash command request
 type CommandPayload struct {
 	// Deprecated: The verification token.
-	Token string `json:"token"`
+	Token string
 	// The command that was called
-	Command string `json:"command"`
+	Command string
 	// The text after the command
-	Text string `json:"text"`
+	Text string
 	// The Team ID of the workspace this command was used in.
-	TeamID string `json:"team_id"`
+	TeamID string
 	// The domain name of the workspace.
-	TeamDomain string `json:"team_domain"`
+	TeamDomain string
 	// The Enterprise ID this workspace belongs to if using Enterprise Grid.
-	EnterpriseID string `json:"enterprise_id,omitempty"`
+	EnterpriseID string
 	// The name of the enterprise this workspace belongs to if using Enterprise Grid..
-	EnterpriseName string `json:"enterprise_name,omitempty"`
+	EnterpriseName string
 	// The ID of the channel the command was used in.
-	ChannelID string `json:"channel_id"`
+	ChannelID string
 	// The name of the channel the command was used in.
-	ChannelName string `json:"channel_name"`
+	ChannelName string
 	// The ID of the user calling the command.
-	UserID string `json:"user_id"`
+	UserID string
 	// Deprecated: The name of the user calling the command.
-	UserName string `json:"user_name"`
+	UserName string
 	// A temporary webhook URL that used to generate message responses.
-	ResponseURL string `json:"response_url"`
+	ResponseURL string
 	// A short-lived ID that can be used to open modals.
-	TriggerID string `json:"trigger_id"`
+	TriggerID string
 	// Your Slack App's unique identifier.
-	APIAppID string `json:"api_app_id"`
+	APIAppID string
 }
 
 // A slash command request from Slack
@@ -83,11 +85,35 @@ func (req *CommandRequest) AckWithAction(action CommandResponse) {
 }
 
 func (app *Application) handleCommand(w http.ResponseWriter, r *http.Request) {
-	var payload CommandPayload
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		app.logger.Error("Failed to read command request", "error", err.Error())
+		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
+	}
+
+	decoded, err := url.ParseQuery(string(body))
+	if err != nil {
+		app.logger.Error("Failed to parse command request", "error", err.Error())
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	payload := CommandPayload{
+		Token:          decoded.Get("token"),
+		Command:        decoded.Get("command"),
+		Text:           decoded.Get("text"),
+		TeamID:         decoded.Get("team_id"),
+		TeamDomain:     decoded.Get("team_domain"),
+		EnterpriseID:   decoded.Get("enterprise_id"),
+		EnterpriseName: decoded.Get("enterprise_name"),
+		ChannelID:      decoded.Get("channel_id"),
+		ChannelName:    decoded.Get("channel_name"),
+		UserID:         decoded.Get("user_id"),
+		UserName:       decoded.Get("user_name"),
+		ResponseURL:    decoded.Get("response_url"),
+		TriggerID:      decoded.Get("trigger_id"),
+		APIAppID:       decoded.Get("api_app_id"),
 	}
 
 	handler, ok := app.commands[payload.Command]
