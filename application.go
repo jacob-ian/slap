@@ -3,6 +3,7 @@ package slap
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 )
@@ -109,7 +110,7 @@ func New(config Config) *Application {
 
 	logger := config.Logger
 	if logger == nil {
-		logger = slog.New(slog.NewTextHandler(nil, &slog.HandlerOptions{}))
+		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 	}
 
 	errorMessage := config.ErrorMessage
