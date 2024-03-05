@@ -14,7 +14,7 @@ import (
 
 func main() {
 	router := http.NewServeMux()
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	app := slap.New(slap.Config{
 		Router:        router,
