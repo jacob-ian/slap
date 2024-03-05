@@ -6,4 +6,9 @@ A framework for building Slack Applications in Go!
 
 - Move response action types into the package
 - Readme & usage guide
-- Tests everywhere
+- Tests
+  - [ ] signature.go
+  - [ ] block_actions.go
+  - [ ] commands.go
+  - [ ] events.go
+  - [ ] view_submissions.go
