@@ -52,17 +52,18 @@ type CommandRequest struct {
 type CommandHandler func(req *CommandRequest) error
 
 // The type in a command action response
-type CommandActionResponseType string
+type CommandResponseActionType string
 
+// The allowed CommandResponseAction ResponseType values
 const (
-	RespondInChannel CommandActionResponseType = "in_channel"
-	RespondEphemeral CommandActionResponseType = "ephemeral"
+	RespondInChannel CommandResponseActionType = "in_channel"
+	RespondEphemeral CommandResponseActionType = "ephemeral"
 )
 
 // An immediate action to be ran in response to a slash command
 type CommandResponseAction struct {
-	// The type of response "in_channel" or "ephemeral"
-	ResponseType CommandActionResponseType `json:"response_type"`
+	// The type of response: "in_channel" or "ephemeral"
+	ResponseType CommandResponseActionType `json:"response_type"`
 	// Text to send in the response
 	Text string `json:"text"`
 	// Slack Block Kit Blocks to send in the response
