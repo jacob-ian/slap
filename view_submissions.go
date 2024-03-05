@@ -56,7 +56,6 @@ func (req *ViewSubmissionRequest) AckWithAction(action ViewResponseAction) {
 	}
 	req.ackCalled = true
 	bytes, err := json.Marshal(action)
-	println(string(bytes))
 	if err != nil {
 		req.Logger.Error("Could not encode view response action", "error", err.Error())
 		req.errChannel <- err
