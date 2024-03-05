@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 )
 
 // A function taking a Slack teamID (workspace ID) that returns
@@ -110,7 +111,9 @@ func New(config Config) *Application {
 
 	logger := config.Logger
 	if logger == nil {
-		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+		logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level: slog.LevelError,
+		}))
 	}
 
 	errorMessage := config.ErrorMessage
