@@ -3,7 +3,6 @@ package slap
 
 import (
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"os"
