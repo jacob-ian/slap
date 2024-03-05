@@ -19,13 +19,44 @@ type ViewSubmissionRequest struct {
 	Payload ViewSubmissionPayload
 }
 
+// A view response action ResponseType
+type ViewResponseActionType string
+
+// The ViewResponseAction ResponseType values
+const (
+	// Clears the modal stack
+	ViewResponseClear ViewResponseActionType = "clear"
+	// Displays an error to the user in the modal
+	ViewResponseErrors ViewResponseActionType = "errors"
+	// Updates the view of the currently open modal
+	ViewResponseUpdate ViewResponseActionType = "update"
+	// Adds a new modal to the modal stack
+	ViewResponsePush ViewResponseActionType = "push"
+)
+
+// An immediate response action for a view submission
+type ViewResponseAction struct {
+	// The type of response: "clear", "errors", "update", or "push"
+	ResponseAction ViewResponseActionType `json:"response_action"`
+	// The view for "update" or "push" actions
+	View *slack.View `json:"view,omitempty"`
+	// The blockID-error map for "errors" actions.
+	//
+	// Example:
+	//  errors := map[string]string {
+	//    "email-input-block": "Please enter a valid email address."
+	//  }
+	Errors map[string]string `json:"errors,omitempty"`
+}
+
 // Immediately respond to Slack with a view response action
-func (req *ViewSubmissionRequest) AckWithAction(action slack.ViewSubmissionResponse) {
+func (req *ViewSubmissionRequest) AckWithAction(action ViewResponseAction) {
 	if req.ackCalled {
 		return
 	}
 	req.ackCalled = true
 	bytes, err := json.Marshal(action)
+	println(string(bytes))
 	if err != nil {
 		req.Logger.Error("Could not encode view response action", "error", err.Error())
 		req.errChannel <- err

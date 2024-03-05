@@ -26,7 +26,7 @@ func main() {
 	})
 
 	app.RegisterCommand("/start", func(req *slap.CommandRequest) error {
-		req.AckWithAction(slap.CommandResponse{
+		req.AckWithAction(slap.CommandResponseAction{
 			ResponseType: slap.RespondEphemeral,
 			Text:         "Get started by clicking the button!",
 			Blocks: []slack.Block{
@@ -110,15 +110,19 @@ func main() {
 		if !hasFullName {
 			return errors.New("Missing full name")
 		}
-		if rune(strings.ToLower(fullName.Value)[0]) != 'a' {
-			req.AckWithAction(*slack.NewErrorsViewSubmissionResponse(map[string]string{
-				"input-block": "Name doesn't start with 'A'",
-			}))
+
+		if !startsWithA(fullName.Value) {
+			req.AckWithAction(slap.ViewResponseAction{
+				ResponseAction: slap.ViewResponseErrors,
+				Errors: map[string]string{
+					"input-block": "Name doesn't start with an 'A'",
+				},
+			})
 			return nil
 		}
 
-		req.AckWithAction(slack.ViewSubmissionResponse{
-			ResponseAction: "clear",
+		req.AckWithAction(slap.ViewResponseAction{
+			ResponseAction: slap.ViewResponseClear,
 		})
 
 		_, _, err := req.Client.PostMessage(req.Payload.User.ID, slack.MsgOptionText("Hello "+fullName.Value, false))
@@ -156,4 +160,8 @@ func main() {
 		Handler: router,
 	}
 	panic(server.ListenAndServe())
+}
+
+func startsWithA(value string) bool {
+	return rune(strings.ToLower(value)[0]) != 'a'
 }

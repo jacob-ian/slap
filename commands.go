@@ -60,8 +60,8 @@ const (
 )
 
 // An immediate action to be ran in response to a slash command
-type CommandResponse struct {
-	// The type of response
+type CommandResponseAction struct {
+	// The type of response "in_channel" or "ephemeral"
 	ResponseType CommandActionResponseType `json:"response_type"`
 	// Text to send in the response
 	Text string `json:"text"`
@@ -70,7 +70,7 @@ type CommandResponse struct {
 }
 
 // Immediately respond to Slack's slash command request with an action
-func (req *CommandRequest) AckWithAction(action CommandResponse) {
+func (req *CommandRequest) AckWithAction(action CommandResponseAction) {
 	if req.ackCalled {
 		return
 	}
