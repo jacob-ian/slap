@@ -135,19 +135,19 @@ func main() {
 
 	app.RegisterEventHandler("message", func(req *slap.EventRequest) error {
 		// Parse the inner message event from the Events API outer event
-		var innerEvent slap.MessageEvent
-		err := json.Unmarshal(req.Payload.Event, &innerEvent)
+		var msg slap.MessageEvent
+		err := json.Unmarshal(req.Payload.Event, &msg)
 		if err != nil {
 			return err
 		}
 		req.Ack()
 
-		if innerEvent.IsBot() {
+		if msg.IsBot() {
 			// Slack will send a "message" event when the bot sends a message to a
 			// conversation it is a part of
 			return nil
 		}
-		_, _, err = req.Client.PostMessage(innerEvent.Channel, slack.MsgOptionText("You wrote: "+innerEvent.Text, false))
+		_, _, err = req.Client.PostMessage(msg.Channel, slack.MsgOptionText("You wrote: "+msg.Text, false))
 		if err != nil {
 			return err
 		}
