@@ -1,0 +1,40 @@
+{
+  "type": "block_actions",
+  "user": {
+    "id": "U0123456",
+    "username": "john",
+    "team_id": "T012345"
+  },
+  "team": {
+    "id": "T012345",
+    "domain": "slap"
+  },
+  "trigger_id": "c85089ecd7bf483b74c889b48227ad5c",
+  "api_app_id": "A012345",
+  "container": {
+    "type": "message_attachment",
+    "message_ts": "1548261231.000200",
+    "attachment_id": 1,
+    "channel_id": "CBR2V3XEX",
+    "is_ephemeral": false,
+    "is_app_unfurl": false
+  },
+  "channel": {
+    "id": "C0123456",
+    "name": "channel"
+  },
+  "message": {
+    "bot_id": "BAH5CA16Z",
+    "type": "message",
+    "text": "This content can't be displayed.",
+    "user": "UAJ2RU415",
+    "ts": "1548261231.000200"
+  },
+  "actions": [
+    {
+      "block_id": "abcd",
+      "action_id": "test-action",
+      "value": "test"
+    }
+  ]
+}

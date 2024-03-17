@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"time"
 
@@ -27,22 +26,24 @@ func createTestApp() (*slap.Application, *http.ServeMux) {
 	}), router
 }
 
-func createSlackRequest(path string, body []byte) *http.Request {
-	r := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
+func addSignatureHeaders(req *http.Request) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		panic("Could not read body")
+	}
+	req.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	ts := fmt.Sprintf("%v", time.Now().UnixMilli())
 	contents := "v0:" + ts + ":" + string(body)
 	hmac := hmac.New(sha256.New, []byte("signing-secret"))
-	_, err := hmac.Write([]byte(contents))
+	_, err = hmac.Write([]byte(contents))
 	if err != nil {
 		panic("Could not write hmac:" + err.Error())
 	}
 
 	signature := "v0=" + hex.EncodeToString(hmac.Sum(nil))
-	r.Header.Add("x-slack-request-timestamp", ts)
-	r.Header.Add("x-slack-signature", signature)
-
-	return r
+	req.Header.Add("x-slack-request-timestamp", ts)
+	req.Header.Add("x-slack-signature", signature)
 }
 
 func getJSONTestData(name string) ([]byte, error) {
