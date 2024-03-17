@@ -104,7 +104,7 @@ func TestValidateSignature(t *testing.T) {
 		ts := "1710311551993"
 		contents := "v0:" + ts + ":" + body
 
-		hmac := hmac.New(sha256.New, []byte("secrets"))
+		hmac := hmac.New(sha256.New, []byte("secret"))
 		_, err := hmac.Write([]byte(contents))
 		if err != nil {
 			t.Errorf("Could not write hmac: %v", err.Error())
