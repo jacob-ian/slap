@@ -10,8 +10,7 @@ import (
 // The payload of a Slack block action request
 type BlockActionPayload struct {
 	interactionPayload
-	Container struct {
-	} `json:"container"`
+	Container      slack.Container     `json:"container"`
 	Actions        []slack.BlockAction `json:"actions"`
 	Hash           string              `json:"hash"`
 	BotAccessToken string              `json:"bot_access_token"`
