@@ -190,7 +190,7 @@ func TestBlockActionsAck(t *testing.T) {
 	}
 }
 
-func TestBlockActionsError(t *testing.T) {
+func TestBlockActionsHandlerError(t *testing.T) {
 	t.Parallel()
 
 	app, router := createTestApp()
