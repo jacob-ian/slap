@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,4 +16,4 @@ jobs:
       - name: Check Formatting
         run: test -z $(gofmt -l .)
       - name: Run Tests
-        run: go test ./...
+        run: go test -v ./...
