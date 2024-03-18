@@ -2,9 +2,8 @@ package slap
 
 import (
 	"encoding/json"
-	"io"
+	"errors"
 	"net/http"
-	"net/url"
 
 	"github.com/slack-go/slack"
 )
@@ -39,6 +38,13 @@ type CommandPayload struct {
 	TriggerID string
 	// Your Slack App's unique identifier.
 	APIAppID string
+}
+
+func (p *CommandPayload) validate() error {
+	if p.Command == "" || p.TeamID == "" || p.ChannelID == "" || p.UserID == "" || p.TriggerID == "" {
+		return errors.New("Missing required value")
+	}
+	return nil
 }
 
 // A slash command request from Slack
@@ -86,14 +92,7 @@ func (req *CommandRequest) AckWithAction(action CommandResponseAction) {
 }
 
 func (app *Application) handleCommand(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		app.logger.Error("Failed to read command request body", "error", err.Error())
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
-
-	decoded, err := url.ParseQuery(string(body))
+	err := r.ParseForm()
 	if err != nil {
 		app.logger.Error("Failed to parse command request", "error", err.Error())
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -101,20 +100,26 @@ func (app *Application) handleCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := CommandPayload{
-		Token:          decoded.Get("token"),
-		Command:        decoded.Get("command"),
-		Text:           decoded.Get("text"),
-		TeamID:         decoded.Get("team_id"),
-		TeamDomain:     decoded.Get("team_domain"),
-		EnterpriseID:   decoded.Get("enterprise_id"),
-		EnterpriseName: decoded.Get("enterprise_name"),
-		ChannelID:      decoded.Get("channel_id"),
-		ChannelName:    decoded.Get("channel_name"),
-		UserID:         decoded.Get("user_id"),
-		UserName:       decoded.Get("user_name"),
-		ResponseURL:    decoded.Get("response_url"),
-		TriggerID:      decoded.Get("trigger_id"),
-		APIAppID:       decoded.Get("api_app_id"),
+		Token:          r.PostForm.Get("token"),
+		Command:        r.PostForm.Get("command"),
+		Text:           r.PostForm.Get("text"),
+		TeamID:         r.PostForm.Get("team_id"),
+		TeamDomain:     r.PostForm.Get("team_domain"),
+		EnterpriseID:   r.PostForm.Get("enterprise_id"),
+		EnterpriseName: r.PostForm.Get("enterprise_name"),
+		ChannelID:      r.PostForm.Get("channel_id"),
+		ChannelName:    r.PostForm.Get("channel_name"),
+		UserID:         r.PostForm.Get("user_id"),
+		UserName:       r.PostForm.Get("user_name"),
+		ResponseURL:    r.PostForm.Get("response_url"),
+		TriggerID:      r.PostForm.Get("trigger_id"),
+		APIAppID:       r.PostForm.Get("api_app_id"),
+	}
+
+	if err = payload.validate(); err != nil {
+		app.logger.Error("Command payload is invalid", "error", err.Error())
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
 	}
 
 	handler, ok := app.commands[payload.Command]
