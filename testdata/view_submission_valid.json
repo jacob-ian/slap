@@ -1,0 +1,63 @@
+{
+  "type": "view_submission",
+  "user": {
+    "id": "U0123456",
+    "username": "john",
+    "team_id": "T012345"
+  },
+  "team": {
+    "id": "T012345",
+    "domain": "slap"
+  },
+  "api_app_id": "A012345",
+  "view": {
+    "id": "7fc2d618247b6d47",
+    "callback_id": "test-modal",
+    "type": "modal",
+    "title": {
+      "type": "plain_text",
+      "text": "Test"
+    },
+    "submit": {
+      "type": "plain_text",
+      "text": "Submit"
+    },
+    "close": {
+      "type": "plain_text",
+      "text": "Cancel"
+    },
+    "blocks": [
+      {
+        "type": "section",
+        "text": {
+          "type": "plain_text",
+          "text": "Hello"
+        }
+      },
+      {
+        "type": "input",
+        "block_id": "text-input",
+        "label": {
+          "type": "plain_text",
+          "text": "Input"
+        },
+        "element": {
+          "type": "plain_text_input",
+          "action_id": "text-input"
+        }
+      }
+    ],
+    "state": {
+      "values": {
+        "text-input": {
+          "plain_text_input": {
+            "action_id": "text-input",
+            "value": "This is text"
+          }
+        }
+      }
+    },
+    "hash": "156663117.cd33ad1f",
+    "response_urls": []
+  }
+}
