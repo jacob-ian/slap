@@ -205,5 +205,6 @@ This allows for the fetching of a workspace's bot token from your store by the w
 - [ ] Add support for Echo
 
 ## Special Thanks
+
 Thank you to the contributors at [github.com/go-slack/slack](https://github.com/go-slack/slack) for creating and maintaining the Slack API client and types
 which are needed to make Slap work.
