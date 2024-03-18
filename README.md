@@ -28,5 +28,5 @@ app.RegisterCommand("/hi", func(req *slap.CommandRequest) error) {
 ```
 
 # Special Thanks
-Thank you to the contributors at (github.com/go-slack/slack)[https://github.com/go-slack/slack] for creating and maintaining the Slack API client and types
+Thank you to the contributors at [github.com/go-slack/slack](https://github.com/go-slack/slack) for creating and maintaining the Slack API client and types
 which are needed to make Slap work.
