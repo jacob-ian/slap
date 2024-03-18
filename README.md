@@ -1,6 +1,6 @@
 # Slap: Easily build Slack Apps with Go
 
-A Slack application framework inspired by [Slack's Bolt Framework](https://api.slack.com/bolt) and `net/http` library.
+A Slack application framework inspired by [Slack's Bolt Framework](https://api.slack.com/bolt) and the `net/http` library.
 
 ## Examples
 
