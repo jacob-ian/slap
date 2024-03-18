@@ -7,7 +7,7 @@ A framework for building Slack Applications in Go!
 - Readme & usage guide
 - Tests
   - [x] signature.go
-  - [ ] block_actions.go
+  - [x] block_actions.go
   - [ ] commands.go
   - [ ] events.go
-  - [ ] view_submissions.go
+  - [x] view_submissions.go
