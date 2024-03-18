@@ -1,0 +1,6 @@
+{
+  "type": "app_rate_limited",
+  "team_id": "T0123456",
+  "minute_rate_limited": 123456,
+  "api_app_id": "A0123456"
+}

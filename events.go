@@ -113,7 +113,7 @@ func (app *Application) handleEvent(w http.ResponseWriter, r *http.Request) {
 func (app *Application) handleEventCallback(w http.ResponseWriter, o outerEvent) {
 	var innerType innerEventType
 	err := json.Unmarshal(o.Event, &innerType)
-	if err != nil {
+	if err != nil || innerType.Type == "" {
 		app.logger.Error("Could not parse inner event type", "error", err.Error())
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
